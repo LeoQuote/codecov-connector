@@ -46,7 +46,7 @@ class RepoUploadToken(BaseModel):
 @app.get("/{org}/{repo}", response_model=RepoUploadToken)
 async def get_upload_token(org: str, repo: str, cursor=Depends(get_session), f: str | None = None):
     owner = cursor.execute(text("select ownerid, username from owners where username = :username limit 1"),
-                           username=org).first()
+                           {"username": org}).first()
     # Retrieve query results
     if not owner:
         raise HTTPException(
@@ -57,8 +57,7 @@ async def get_upload_token(org: str, repo: str, cursor=Depends(get_session), f: 
     # 取回 token
     result = cursor.execute(text("select ownerid, name, upload_token from repos "
                                  "where ownerid = :ownerid and name= :name limit 1"),
-                            ownerid=owner[0],
-                            name=repo).first()
+                            {"ownerid": owner[0], "name": repo}).first()
 
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
